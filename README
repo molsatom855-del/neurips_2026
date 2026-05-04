@@ -1,0 +1,104 @@
+# VQ-Atom: Reproducibility Guide (Anonymous)
+
+This repository provides minimal instructions to reproduce the main DTI experiments in the paper.
+
+---
+
+## 1. Setup
+
+```bash
+git clone https://github.com/<anonymous>/neurips_2026.git
+cd neurips_2026
+
+pip install ogb googledrivedownloader category_encoders einops pyyaml gdown matplotlib entmax
+pip install transformers accelerate
+```
+
+---
+
+## 2. Pretrained Models
+
+Download pretrained checkpoints:
+
+```bash
+cd data
+
+# Transformer (ligand MLM)
+gdown https://drive.google.com/uc?id=1MVFevAOYB6omHQmoP2BHTq4BJoXL4HCH
+
+# VQ-Atom quantization model
+gdown https://drive.google.com/uc?id=1d3WxI54Ae0Am_5RIAGf7TW98JI_uuYRS
+```
+
+---
+
+## 3. Dataset
+
+Download processed KIBA splits:
+
+```bash
+gdown https://drive.google.com/uc?id=1eUB8CztDIttksV4FfHml55pcVbrrjs03
+gdown https://drive.google.com/uc?id=1zaAL-3XWNbVmieojKf0K8HZaPEtt9Sfx
+gdown https://drive.google.com/uc?id=1fxJHq0XdNFJwZx4yHKg8XfYtc7894-5N
+```
+
+Files:
+
+* `train.csv`
+* `valid.csv`
+* `test.csv`
+
+---
+
+## 4. Training (DTI)
+
+```bash
+cd src
+
+python dti.py \
+  --use_train_valid_csv \
+  --train_csv ../data/train.csv \
+  --valid_csv ../data/valid.csv \
+  --final_eval_csv ../data/test.csv \
+  --lig_ckpt ../data/mlm_ep65.pt \
+  --vq_ckpt ../data/model_epoch_3.pt \
+  --out_dir ./log/ \
+  --batch_size 16 \
+  --epochs 30 \
+  --lr 3e-5 \
+  --dropout 0.4 \
+  --weight_decay 0.05 \
+  --llrd \
+  --llrd_decay 0.97 \
+  --esm_lr_mult 0.1 \
+  --n_heads 8 \
+  --attn_temp 1.5 \
+  --attn_activation sigmoid \
+  --protein_token_dropout 0.10 \
+  --ligand_token_dropout 0.10 \
+  --finetune_esm \
+  --finetune_lig \
+  --plateau \
+  --seed 4 \
+  --reg_lambda 0.2 \
+  --sym_lambda 0 \
+  --attn_entropy_lambda 0 \
+  --y_thr 12.1 \
+  --freeze_esm_bottom 28 \
+  --warmup_ratio 0.05 \
+  --pl_lp_overlap both
+```
+
+---
+
+## Notes
+
+* The setup focuses on reproducing the main experimental setting (protein-cold KIBA).
+* All hyperparameters are fixed to match the reported configuration.
+* Results may vary slightly due to randomness.
+
+---
+
+## Disclaimer
+
+This repository is anonymized for double-blind review. Code and documentation will be cleaned and fully released upon acceptance.
